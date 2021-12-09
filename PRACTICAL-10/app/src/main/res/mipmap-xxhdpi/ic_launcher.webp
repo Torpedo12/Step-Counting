@@ -1,0 +1,73 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package androidx.core.app;
+
+import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.os.Build;
+
+import androidx.annotation.NonNull;
+
+/**
+ * Compatibility library for {@link AlarmManager} with fallbacks for older platforms.
+ */
+public final class AlarmManagerCompat {
+    /**
+     * Schedule an alarm that represents an alarm clock.
+     *
+     * The system may choose to display information about this alarm to the user.
+     *
+     * <p>
+     * This method is like {@link #setExact}, but implies
+     * {@link AlarmManager#RTC_WAKEUP}.
+     *
+     * @param alarmManager AlarmManager instance used to set the alarm
+     * @param triggerTime time at which the underlying alarm is triggered in wall time
+     *                    milliseconds since the epoch
+     * @param showIntent an intent that can be used to show or edit details of
+     *                    the alarm clock.
+     * @param operation Action to perform when the alarm goes off;
+     *        typically comes from {@link PendingIntent#getBroadcast
+     *        IntentSender.getBroadcast()}.
+     *
+     * @see AlarmManager#set
+     * @see AlarmManager#setRepeating
+     * @see AlarmManager#setWindow
+     * @see #setExact
+     * @see AlarmManager#cancel
+     * @see AlarmManager#getNextAlarmClock()
+     * @see android.content.Context#sendBroadcast
+     * @see android.content.Context#registerReceiver
+     * @see android.content.Intent#filterEquals
+     */
+    @SuppressLint("MissingPermission")
+    public static void setAlarmClock(@NonNull AlarmManager alarmManager, long triggerTime,
+            @NonNull PendingIntent showIntent, @NonNull PendingIntent operation) {
+        if (Build.VERSION.SDK_INT >= 21) {
+            alarmManager.setAlarmClock(new AlarmManager.AlarmClockInfo(triggerTime, showIntent),
+                    operation);
+        } else {
+            AlarmManagerCompat.setExact(alarmManager, AlarmManager.RTC_WAKEUP, triggerTime,
+                    operation);
+        }
+    }
+
+    /**
+     * Like {@link AlarmManager#set(int, long, PendingIntent)}, but this alarm will be allowed to
+     * execute even when the system is in low-power idle modes.  This type of alarm must <b>only</b>
+     * be used for sit
